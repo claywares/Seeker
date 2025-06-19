@@ -1,86 +1,34 @@
 # Seeker - Machine Learning for Time Series Anomaly Detection
 
-## Overview
+## Definition of abnormality
 
-Seeker is a demonstration project that showcases how machine learning and statistical techniques can be used to detect anomalies in time series metrics. Instead of manually setting thresholds for thousands of services, this approach automatically identifies unusual patterns in the data.
+Abnormality (Anomaly) in Seeker refers to a data point or pattern in a time series that significantly deviates from the expected behavior, as learned from historical data. This includes:
 
-The project implements several anomaly detection algorithms and compares their performance on synthetic time series data with injected anomalies.
+*Point anomalies*: Individual data points that are unusually high or low compared to the rest of the series.
+*Contextual anomalies*: Data points that are only abnormal within a specific context (e.g., a value that is normal on weekends but abnormal on weekdays).
+*Collective anomalies*: Sequences or patterns of data points that are abnormal together, even if individual points are not.
 
-## Features
+### Limitations
+Seeker currently focuses on detecting point in univariate time series. It may not detect all types of anomalies, such as:
 
-- **Multiple Anomaly Detection Algorithms**:
-  - Statistical methods (Z-score)
-  - Exponentially Weighted Moving Average (EWMA)
-  - Machine Learning methods (Isolation Forest, One-Class SVM)
-  - Time series decomposition (STL)
+- Contextual anomalies
+- Gradual drifts or subtle changes in trend
+- Anomalies in multivariate or highly irregular time series
+- Anomalies requiring domain-specific rules or external context
 
-- **Synthetic Data Generation**:
-  - Simple time series with trend, seasonality, and noise
-  - Complex time series with multiple seasonal patterns and different types of anomalies
+## Point Anomalies
+Point anomalies are the simplest and most common types of anomalies, perfect for first-time experiments and demonstrations. For example, instantaneous surge or drop in CPU and Memory, these are all point anomalies.
 
-- **Evaluation and Visualization**:
-  - Performance metrics (precision, recall, F1 score)
-  - Visual comparison of detected anomalies
+- Z-score
+- IQR
 
-## Installation
-
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd Seeker
-   ```
-
-2. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-Run the demo:
-
-```
-python main.py
-```
-
-This will:
-1. Generate synthetic time series data with injected anomalies
-2. Apply different anomaly detection algorithms
-3. Evaluate and compare their performance
-4. Visualize the results
-
-## Project Structure
-
-- `main.py`: Main script to run the demo
-- `anomaly_detection.py`: Implementation of anomaly detection algorithms and utility functions
-- `requirements.txt`: Required Python packages
-
-## Anomaly Detection Algorithms
-
-### Statistical Detector (Z-score)
-Detects anomalies based on how many standard deviations a data point is from the mean.
-
-### EWMA Detector
-Uses Exponentially Weighted Moving Average to detect anomalies, giving more weight to recent observations.
-
-### Isolation Forest
-A machine learning algorithm that isolates observations by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
-
-### One-Class SVM
-A machine learning algorithm that learns a decision boundary that encompasses the normal data points, treating outliers as anomalies.
-
-### STL Decomposition
-Decomposes the time series into trend, seasonality, and residual components, then identifies anomalies in the residual component.
-
-## Extending for Real-World Use
-
-To use this project with real-world data:
-
-1. Replace the data generation functions with code to load your actual time series data
-2. Adjust the parameters of the anomaly detection algorithms to suit your specific use case
-3. Implement additional preprocessing steps if needed (e.g., handling missing values, normalization)
-4. Consider implementing online/streaming anomaly detection for real-time monitoring
-
-## License
-
-[MIT License](LICENSE)
+### Z-score
+The choice of 3 as the threshold is based on the "Three-sigma rule" (68-95-99.7 rule) in statistics:
+#### Statistical Distribution
+- Within ±1σ: ~68% of data
+- Within ±2σ: ~95% of data
+- Within ±3σ: ~99.7% of data
+#### Trade-off Consideration
+- Lower threshold (e.g., 2σ): More sensitive but more false alarms
+- Higher threshold (e.g., 4σ): Fewer false alarms but might miss anomalies
+- 3σ: Generally good balance for most cases
