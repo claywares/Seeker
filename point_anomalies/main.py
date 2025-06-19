@@ -99,7 +99,7 @@ def plot_comparison(df):
     plt.tight_layout()
 
     # 保存图片到指定目录
-    save_path = 'point_anomalies/anomaly_detection_comparison.png'
+    save_path = 'point_anomalies/CPU_anomaly_detection_comparison.png'
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     print(f"\nSaving picture to...: {save_path}")
 
