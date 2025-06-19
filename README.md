@@ -32,3 +32,22 @@ The choice of 3 as the threshold is based on the "Three-sigma rule" (68-95-99.7 
 - Lower threshold (e.g., 2σ): More sensitive but more false alarms
 - Higher threshold (e.g., 4σ): Fewer false alarms but might miss anomalies
 - 3σ: Generally good balance for most cases
+
+### IQR
+#### Quartiles:
+- Q1 (25th percentile): 25% of data falls below this value
+- Q3 (75th percentile): 75% of data falls below this value
+- IQR = Q3 - Q1: Range containing middle 50% of data
+#### k parameter (typically 1.5):
+- Controls sensitivity of detection
+- k=1.5 (standard): moderately strict
+- k=3.0: more lenient
+- Lower k = more anomalies detected
+#### Thresholds:
+- Lower bound = Q1 - k×IQR
+- Upper bound = Q3 + k×IQR
+- Any points outside these bounds are considered anomalies
+
+### Comparison
+- CPU burst peak monitoring: use Z-score first
+- Long-term trend anomaly: use IQR first
