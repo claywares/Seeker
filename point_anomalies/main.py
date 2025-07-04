@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
 
 def generate_cpu_data(n_points=200, seed=42):
     """生成模拟的CPU使用率数据,包含已知的异常点"""
@@ -55,12 +57,12 @@ def ewma_detection(data, span=15, threshold=2):
     diff = np.abs(data - ewm_mean)
     threshold_values = threshold * ewm_std
     
-    # 打印调试信息
-    print("\nEWMA 检测调试信息:")
-    print(f"最大偏差值: {diff.max():.2f}")
-    print(f"平均偏差值: {diff.mean():.2f}")
-    print(f"最大阈值: {threshold_values.max():.2f}")
-    print(f"平均阈值: {threshold_values.mean():.2f}")
+    # # 打印调试信息
+    # print("\nEWMA 检测调试信息:")
+    # print(f"最大偏差值: {diff.max():.2f}")
+    # print(f"平均偏差值: {diff.mean():.2f}")
+    # print(f"最大阈值: {threshold_values.max():.2f}")
+    # print(f"平均阈值: {threshold_values.mean():.2f}")
     
     return diff > threshold_values
 
@@ -70,31 +72,56 @@ def hybrid_detection(data, zscore_threshold=3, iqr_k=1.5):
     iqr_anomalies = iqr_detection(data, iqr_k)
     return zscore_anomalies | iqr_anomalies  # 取并集
 
+def isolation_forest_detection(data, contamination=0.015, random_state=42):
+    """使用Isolation Forest方法检测异常
+    
+    参数:
+        data: 输入的时间序列数据
+        contamination: 预期的异常比例 (0.015 = 1.5%, 更接近真实异常比例)
+        random_state: 随机种子
+    """
+    clf = IsolationForest(contamination=contamination, random_state=random_state)
+    data_array = np.array(data).reshape(-1, 1)
+    return clf.fit_predict(data_array) == -1
+
+def lof_detection(data, n_neighbors=20, contamination=0.015):
+    """使用LOF方法检测异常
+    
+    参数:
+        data: 输入的时间序列数据
+        n_neighbors: 计算LOF时考虑的邻居数量
+        contamination: 预期的异常比例 (0.015 = 1.5%, 更接近真实异常比例)
+    """
+    clf = LocalOutlierFactor(n_neighbors=n_neighbors, contamination=contamination)
+    data_array = np.array(data).reshape(-1, 1)
+    return clf.fit_predict(data_array) == -1
+
 def plot_comparison(df):
-    """Z-score、IQR和EWMA检测方法的图示比较"""
-    # 使用三种方法检测异常
+    """所有检测方法的图示比较"""
+    # 使用所有方法检测异常
     df['zscore_anomaly'] = zscore_detection(df['cpu_usage'])
     df['iqr_anomaly'] = iqr_detection(df['cpu_usage'])
     df['ewma_anomaly'] = ewma_detection(df['cpu_usage'])
-    # df['hybrid_anomaly'] = hybrid_detection(df['cpu_usage'])  # 暂时注释掉
+    df['iforest_anomaly'] = isolation_forest_detection(df['cpu_usage'])
+    df['lof_anomaly'] = lof_detection(df['cpu_usage'])
 
-    # 创建三个子图
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 15))
+    # 创建五个子图
+    fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(5, 1, figsize=(12, 25))
 
     # 绘制Z-score检测结果
-    ax1.plot(df['timestamp'], df['cpu_usage'], label='CPU Utilization')
+    ax1.plot(df['timestamp'], df['cpu_usage'], label='CPU Usage')
     ax1.scatter(df.loc[df['is_anomaly']==1, 'timestamp'],
                 df.loc[df['is_anomaly']==1, 'cpu_usage'],
                 color='red', label='True Anomaly', marker='x', s=100)
     ax1.scatter(df.loc[df['zscore_anomaly']==1, 'timestamp'],
                 df.loc[df['zscore_anomaly']==1, 'cpu_usage'],
                 color='orange', label='Z-score Detection', marker='o', facecolors='none', s=120)
-    ax1.set_title('Z-score Detection (Threshold=3)')
-    ax1.set_ylabel('CPU Utilization (%)')
+    ax1.set_title('Z-score Detection (threshold=3)')
+    ax1.set_ylabel('CPU Usage (%)')
     ax1.legend()
 
     # 绘制IQR检测结果
-    ax2.plot(df['timestamp'], df['cpu_usage'], label='CPU Utilization')
+    ax2.plot(df['timestamp'], df['cpu_usage'], label='CPU Usage')
     ax2.scatter(df.loc[df['is_anomaly']==1, 'timestamp'],
                 df.loc[df['is_anomaly']==1, 'cpu_usage'],
                 color='red', label='True Anomaly', marker='x', s=100)
@@ -102,21 +129,45 @@ def plot_comparison(df):
                 df.loc[df['iqr_anomaly']==1, 'cpu_usage'],
                 color='green', label='IQR Detection', marker='o', facecolors='none', s=120)
     ax2.set_title('IQR Detection (k=1.5)')
-    ax2.set_ylabel('CPU Utilization (%)')
+    ax2.set_ylabel('CPU Usage (%)')
     ax2.legend()
 
     # 绘制EWMA检测结果
-    ax3.plot(df['timestamp'], df['cpu_usage'], label='CPU Utilization')
+    ax3.plot(df['timestamp'], df['cpu_usage'], label='CPU Usage')
     ax3.scatter(df.loc[df['is_anomaly']==1, 'timestamp'],
                 df.loc[df['is_anomaly']==1, 'cpu_usage'],
                 color='red', label='True Anomaly', marker='x', s=100)
     ax3.scatter(df.loc[df['ewma_anomaly']==1, 'timestamp'],
                 df.loc[df['ewma_anomaly']==1, 'cpu_usage'],
                 color='blue', label='EWMA Detection', marker='o', facecolors='none', s=120)
-    ax3.set_title('EWMA Detection (span=20, Threshold=3)')
-    ax3.set_xlabel('Time')
-    ax3.set_ylabel('CPU Utilization (%)')
+    ax3.set_title('EWMA Detection (span=15, threshold=2)')
+    ax3.set_ylabel('CPU Usage (%)')
     ax3.legend()
+
+    # 绘制Isolation Forest检测结果
+    ax4.plot(df['timestamp'], df['cpu_usage'], label='CPU Usage')
+    ax4.scatter(df.loc[df['is_anomaly']==1, 'timestamp'],
+                df.loc[df['is_anomaly']==1, 'cpu_usage'],
+                color='red', label='True Anomaly', marker='x', s=100)
+    ax4.scatter(df.loc[df['iforest_anomaly']==1, 'timestamp'],
+                df.loc[df['iforest_anomaly']==1, 'cpu_usage'],
+                color='purple', label='IForest Detection', marker='o', facecolors='none', s=120)
+    ax4.set_title('Isolation Forest Detection (contamination=0.1)')
+    ax4.set_ylabel('CPU Usage (%)')
+    ax4.legend()
+
+    # 绘制LOF检测结果
+    ax5.plot(df['timestamp'], df['cpu_usage'], label='CPU Usage')
+    ax5.scatter(df.loc[df['is_anomaly']==1, 'timestamp'],
+                df.loc[df['is_anomaly']==1, 'cpu_usage'],
+                color='red', label='True Anomaly', marker='x', s=100)
+    ax5.scatter(df.loc[df['lof_anomaly']==1, 'timestamp'],
+                df.loc[df['lof_anomaly']==1, 'cpu_usage'],
+                color='brown', label='LOF Detection', marker='o', facecolors='none', s=120)
+    ax5.set_title('LOF Detection (n_neighbors=20, contamination=0.1)')
+    ax5.set_xlabel('Time')
+    ax5.set_ylabel('CPU Usage (%)')
+    ax5.legend()
 
     plt.tight_layout()
 
@@ -138,7 +189,8 @@ def main():
     print(f"Z-score检测数量: {df['zscore_anomaly'].sum()}")
     print(f"IQR检测数量: {df['iqr_anomaly'].sum()}")
     print(f"EWMA检测数量: {df['ewma_anomaly'].sum()}")
-    # print(f"混合检测数量: {df['hybrid_anomaly'].sum()}")  # 暂时注释掉
+    print(f"Isolation Forest检测数量: {df['iforest_anomaly'].sum()}")
+    print(f"LOF检测数量: {df['lof_anomaly'].sum()}")
 
     # 打印检测边界
     mean = np.mean(df['cpu_usage'])
