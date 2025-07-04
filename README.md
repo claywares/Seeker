@@ -5,7 +5,9 @@
 Abnormality (Anomaly) in Seeker refers to a data point or pattern in a time series that significantly deviates from the expected behavior, as learned from historical data. This includes:
 
 *Point anomalies*: Individual data points that are unusually high or low compared to the rest of the series.
+
 *Contextual anomalies*: Data points that are only abnormal within a specific context (e.g., a value that is normal on weekends but abnormal on weekdays).
+
 *Collective anomalies*: Sequences or patterns of data points that are abnormal together, even if individual points are not.
 
 ### Limitations
