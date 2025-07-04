@@ -96,6 +96,22 @@ def lof_detection(data, n_neighbors=20, contamination=0.015):
     data_array = np.array(data).reshape(-1, 1)
     return clf.fit_predict(data_array) == -1
 
+def dynamic_threshold_detection(data: pd.Series, window_size: int = 60) -> np.ndarray:
+    """使用动态阈值进行异常检测
+    
+    Args:
+        data: CPU使用率数据
+        window_size: 滑动窗口大小（分钟）
+    """
+    rolling_mean = data.rolling(window=window_size, center=True).mean()
+    rolling_std = data.rolling(window=window_size, center=True).std()
+    
+    # 动态上下界
+    upper_bound = rolling_mean + 3 * rolling_std
+    lower_bound = rolling_mean - 3 * rolling_std
+    
+    return (data > upper_bound) | (data < lower_bound)
+
 def plot_comparison(df):
     """所有检测方法的图示比较"""
     # 使用所有方法检测异常
