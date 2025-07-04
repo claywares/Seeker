@@ -1,55 +1,63 @@
-# Seeker - Machine Learning for Time Series Anomaly Detection
+# Seeker - 时间序列异常检测机器学习项目
 
-## Definition of abnormality
+## 异常定义
 
-Abnormality (Anomaly) in Seeker refers to a data point or pattern in a time series that significantly deviates from the expected behavior, as learned from historical data. This includes:
+在 Seeker 项目中，异常（Anomaly）指的是时间序列中明显偏离预期行为的数据点或模式。根据历史数据学习得到的正常行为作为基准，可以识别以下类型的异常：
 
-*Point anomalies*: Individual data points that are unusually high or low compared to the rest of the series.
+*点异常*: 单个数据点明显高于或低于序列中的其他值。
 
-*Contextual anomalies*: Data points that are only abnormal within a specific context (e.g., a value that is normal on weekends but abnormal on weekdays).
+*上下文异常*: 数据点在特定上下文中才被视为异常（例如：某个值在周末是正常的，但在工作日则属于异常）。
 
-*Collective anomalies*: Sequences or patterns of data points that are abnormal together, even if individual points are not.
+*集合异常*: 一组数据点作为整体呈现异常，即使单个点可能都在正常范围内。
 
-### Limitations
-Seeker currently focuses on detecting point in univariate time series. It may not detect all types of anomalies, such as:
+### 局限性
+Seeker 目前主要聚焦于单变量时间序列的点异常检测。以下类型的异常暂不在支持范围内：
 
-- Contextual anomalies
-- Gradual drifts or subtle changes in trend
-- Anomalies in multivariate or highly irregular time series
-- Anomalies requiring domain-specific rules or external context
+- 上下文异常
+- 渐变趋势或微小的趋势变化
+- 多变量或高度不规则时间序列中的异常
+- 需要领域专业知识或外部上下文的异常
 
-## Point Anomalies
-Point anomalies are the simplest and most common types of anomalies, perfect for first-time experiments and demonstrations. For example, instantaneous surge or drop in CPU and Memory, these are all point anomalies.
+## 点异常检测
+点异常是最简单也是最常见的异常类型，非常适合首次实验和演示。例如，CPU 使用率和内存占用的瞬时突增或突降都属于点异常。
 
-- Z-score
-- IQR
+检测方法
 
-### Z-score
-The choice of 3 as the threshold is based on the "Three-sigma rule" (68-95-99.7 rule) in statistics:
-#### Statistical Distribution
-- Within ±1σ: ~68% of data
-- Within ±2σ: ~95% of data
-- Within ±3σ: ~99.7% of data
-#### Trade-off Consideration
-- Lower threshold (e.g., 2σ): More sensitive but more false alarms
-- Higher threshold (e.g., 4σ): Fewer false alarms but might miss anomalies
-- 3σ: Generally good balance for most cases
+统计方法
+- Z-score（标准分数）法
+- IQR（四分位距）法
+- EWMA（指数加权移动平均）法
 
-### IQR
-#### Quartiles:
-- Q1 (25th percentile): 25% of data falls below this value
-- Q3 (75th percentile): 75% of data falls below this value
-- IQR = Q3 - Q1: Range containing middle 50% of data
-#### k parameter (typically 1.5):
-- Controls sensitivity of detection
-- k=1.5 (standard): moderately strict
-- k=3.0: more lenient
-- Lower k = more anomalies detected
-#### Thresholds:
-- Lower bound = Q1 - k×IQR
-- Upper bound = Q3 + k×IQR
-- Any points outside these bounds are considered anomalies
+机器学习方法
+- Isolation Forest（孤立森林）
+- LOF（局部离群因子）
 
-### Comparison
-- CPU burst peak monitoring: use Z-score first
-- Long-term trend anomaly: use IQR first
+### Z-score方法
+选择 3 作为阈值基于统计学中的"三西格玛法则"（68-95-99.7规则）：
+#### 数据分布特征
+- ±1σ 区间：包含约 68% 的数据
+- ±2σ 区间：包含约 95% 的数据
+- ±3σ 区间：包含约 99.7% 的数据
+#### 阈值选择权衡
+- 较低阈值（如 2σ）：检测更敏感但假阳性率更高
+- 较高阈值（如 4σ）：假阳性率低但可能漏检
+- 3σ：在大多数场景下能较好平衡准确率和召回率
+
+### IQR方法
+#### 四分位数解释
+- Q1（第一四分位数）：25% 的数据小于此值
+- Q3（第三四分位数）：75% 的数据小于此值
+- IQR = Q3 - Q1：包含中间 50% 数据的范围
+#### k 参数说明（通常取 1.5）
+- 用于控制检测的敏感度
+- k=1.5：标准设置，检测强度适中
+- k=3.0：宽松设置，降低误报
+- k 值越小，检出的异常越多
+#### 异常判定边界
+- 下界 = Q1 - k×IQR
+- 上界 = Q3 + k×IQR
+- 超出这些边界的点被判定为异常
+
+### 对比
+- CPU 突发峰值监控：优先使用 Z-score 方法
+- 长期趋势异常：优先使用 IQR 方法
