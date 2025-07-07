@@ -1,0 +1,122 @@
+{
+  "timestamp": "2025-07-07T21:39:35.066136",
+  "data_length": 300,
+  "methods_used": [
+    "zscore",
+    "iqr",
+    "ewma",
+    "isolation_forest",
+    "lof"
+  ],
+  "summary": {
+    "zscore": {
+      "anomaly_count": 2,
+      "anomaly_rate": "0.67%",
+      "parameters": {
+        "threshold": 2.5
+      }
+    },
+    "iqr": {
+      "anomaly_count": 2,
+      "anomaly_rate": "0.67%",
+      "parameters": {
+        "k": 1.8
+      }
+    },
+    "ewma": {
+      "anomaly_count": 8,
+      "anomaly_rate": "2.67%",
+      "parameters": {
+        "span": 20,
+        "threshold": 2.2
+      }
+    },
+    "isolation_forest": {
+      "anomaly_count": 8,
+      "anomaly_rate": "2.67%",
+      "parameters": {
+        "contamination": 0.025
+      }
+    },
+    "lof": {
+      "anomaly_count": 8,
+      "anomaly_rate": "2.67%",
+      "parameters": {
+        "n_neighbors": 20,
+        "contamination": 0.025
+      }
+    }
+  },
+  "performance": {
+    "zscore": "0.0001s",
+    "iqr": "0.0009s",
+    "ewma": "0.0013s",
+    "isolation_forest": "0.0516s",
+    "lof": "0.0020s"
+  },
+  "detailed_results": {
+    "zscore": {
+      "anomaly_indices": [
+        50,
+        150
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "iqr": {
+      "anomaly_indices": [
+        50,
+        150
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "ewma": {
+      "anomaly_indices": [
+        50,
+        100,
+        150,
+        200,
+        250,
+        251,
+        281,
+        284
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "isolation_forest": {
+      "anomaly_indices": [
+        50,
+        113,
+        125,
+        150,
+        221,
+        223,
+        227,
+        236
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "lof": {
+      "anomaly_indices": [
+        45,
+        50,
+        65,
+        113,
+        118,
+        125,
+        135,
+        150
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    }
+  },
+  "ensemble": {
+    "anomaly_count": 4,
+    "anomaly_rate": "1.33%",
+    "voting_threshold": 0.3
+  }
+}

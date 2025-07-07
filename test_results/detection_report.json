@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-07-07T21:56:56.174290",
+  "data_length": 100,
+  "methods_used": [
+    "zscore",
+    "iqr",
+    "ewma",
+    "isolation_forest",
+    "lof"
+  ],
+  "summary": {
+    "zscore": {
+      "anomaly_count": 2,
+      "anomaly_rate": "2.00%",
+      "parameters": {
+        "threshold": 3.0
+      }
+    },
+    "iqr": {
+      "anomaly_count": 3,
+      "anomaly_rate": "3.00%",
+      "parameters": {
+        "k": 1.5
+      }
+    },
+    "ewma": {
+      "anomaly_count": 2,
+      "anomaly_rate": "2.00%",
+      "parameters": {
+        "span": 15,
+        "threshold": 2.0
+      }
+    },
+    "isolation_forest": {
+      "anomaly_count": 2,
+      "anomaly_rate": "2.00%",
+      "parameters": {
+        "contamination": 0.02
+      }
+    },
+    "lof": {
+      "anomaly_count": 2,
+      "anomaly_rate": "2.00%",
+      "parameters": {
+        "n_neighbors": 20,
+        "contamination": 0.02
+      }
+    }
+  },
+  "performance": {
+    "zscore": "0.0001s",
+    "iqr": "0.0007s",
+    "ewma": "0.0009s",
+    "isolation_forest": "0.0443s",
+    "lof": "0.0019s"
+  },
+  "detailed_results": {
+    "zscore": {
+      "anomaly_indices": [
+        20,
+        50
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "iqr": {
+      "anomaly_indices": [
+        20,
+        50,
+        74
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "ewma": {
+      "anomaly_indices": [
+        20,
+        50
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "isolation_forest": {
+      "anomaly_indices": [
+        20,
+        50
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    },
+    "lof": {
+      "anomaly_indices": [
+        20,
+        50
+      ],
+      "has_scores": false,
+      "metadata_available": false
+    }
+  },
+  "ensemble": {
+    "anomaly_count": 2,
+    "anomaly_rate": "2.00%",
+    "voting_threshold": 0.3
+  }
+}
