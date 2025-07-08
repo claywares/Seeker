@@ -1,0 +1,49 @@
+# Seeker 异常检测系统配置文件
+
+# 检测器配置
+detectors:
+  zscore:
+    threshold: 2.5
+  iqr:
+    k: 1.8
+  ewma:
+    span: 12
+    threshold: 2.0
+  isolation_forest:
+    contamination: 0.03
+    random_state: 42
+  lof:
+    n_neighbors: 15
+    contamination: 0.03
+
+# 评分器配置
+scorers:
+  original:
+    consensus_weight: 0.4
+    deviation_weight: 0.4
+    persistence_weight: 0.2
+  
+  random_forest:
+    n_estimators: 100
+    max_depth: 10
+    random_state: 42
+    
+  neural_network:
+    hidden_layer_sizes: [32, 16, 8]
+    max_iter: 500
+    random_state: 42
+
+# 特征工程配置
+feature_extraction:
+  window_size: 5
+  
+# 评估配置
+evaluation:
+  train_ratio: 0.7
+  threshold_percentile: 95
+  cross_validation_folds: 5
+
+# 分级配置
+classification:
+  n_levels: 3
+  level_names: ["P0", "P1", "P2"]
