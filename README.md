@@ -1,7 +1,7 @@
 # Seeker - 时间序列异常检测机器学习项目
 
 ## Read Slide
-[Click Here](./slides/proposal.html)
+[Click Here](./slides/proposal.pptx)
 
 ## 异常定义
 
