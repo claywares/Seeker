@@ -39,6 +39,9 @@ class RealWorldValidator:
         self.df['lof_anomaly'] = lof_detection(self.df['cpu_usage'], n_neighbors=20, contamination=0.01)
         
         # 计算方法一致性分数
+        # 作用： 统计有多少种方法认为某个点是异常的
+        # 取值范围： 0-5
+        # 意义： 值越高，说明该点被多种方法一致认为是异常，可信度越高
         self.df['method_agreement'] = (
             self.df['zscore_anomaly'].astype(int) +
             self.df['iqr_anomaly'].astype(int) +
@@ -48,11 +51,17 @@ class RealWorldValidator:
         )
         
         # 计算偏离程度分数
+        # 作用： 计算每个数据点相对于整体分布的偏离程度
+        # 公式： |值 - 均值| / 标准差 (即Z-score的绝对值)
+        # 意义： 值越大，说明该点偏离正常范围越远
         mean = self.df['cpu_usage'].mean()
         std = self.df['cpu_usage'].std()
         self.df['deviation_score'] = abs(self.df['cpu_usage'] - mean) / std
         
         # 计算持续性分数
+        # 作用： 评估异常的持续性，避免孤立的噪声点
+        # 方法： 使用3个时间点的滑动窗口，统计窗口内Isolation Forest检测到的异常数量
+        # 意义： 值越高，说明异常在时间上越连续，越可能是真正的异常
         window_size = 3
         self.df['persistence_score'] = (
             self.df['iforest_anomaly']
@@ -62,6 +71,10 @@ class RealWorldValidator:
         )
         
         # 综合评分
+        # 权重设计理念：
+        # 方法一致性 (40%)： 多算法投票的民主原则，减少单一算法的偏差
+        # 偏离程度 (40%)： 数据驱动的客观评估，反映异常的严重程度
+        # 持续性 (20%)： 时间维度的验证，过滤短暂的噪声干扰
         self.df['anomaly_score'] = (
             0.4 * (self.df['method_agreement'] / 5) +  # 方法一致性 40%
             0.4 * (self.df['deviation_score'] / self.df['deviation_score'].max()) +  # 偏离程度 40%
@@ -69,6 +82,11 @@ class RealWorldValidator:
         )
         
         # 确定最终异常
+        # 双重验证机制：
+        # 基础筛选： 必须是Isolation Forest检测到的异常点
+        # 验证条件： 满足以下任一条件即可：
+        # 至少2种方法一致认为是异常
+        # 综合评分超过99%分位数阈值
         self.score_threshold = self.df['anomaly_score'].quantile(0.99)  # Change this line
         self.df['verified_anomaly'] = (
             (self.df['iforest_anomaly'] == 1) &  # 是IForest检测的异常
@@ -79,6 +97,10 @@ class RealWorldValidator:
         )
         
         # 异常分级
+        # 优先级分类：
+        # P0 (高优先级)： 评分最高的1/3异常点，需要立即处理
+        # P1 (中优先级)： 评分中等的1/3异常点，需要关注
+        # P2 (低优先级)： 评分较低的1/3异常点，可以延后处理
         self.df['anomaly_severity'] = pd.cut(
             self.df[self.df['verified_anomaly']]['anomaly_score'],
             bins=3,
