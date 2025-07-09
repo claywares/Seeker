@@ -1,10 +1,8 @@
 ---
 marp: true
+title: Seeker - 时间序列异常检测机器学习项目
 theme: default
-
----
-<!-- 此文档用于生成slide, `Marp for VS Code` -->
-# Seeker - 时间序列异常检测机器学习项目
+paginate: true
 
 ---
 
@@ -48,15 +46,22 @@ theme: default
 
 ---
 ## 技术方案亮点
-现有DEMO实现的核心组件：
 
-1. 异常检测引擎 (main.py)
+---
+
+### 系统架构流程图
+![w:256 h:512](./assets/diagram-three-dimension-rating-1.png)
+
+---
+
+### 核心组件
+
+1. **异常检测引擎**
     - 5种检测算法：Z-score、IQR、EWMA、Isolation Forest、LOF
     - 统计方法和机器学习方法的结合
-1. 验证框架 (validate_real_world_enhanced.py)
+2. **验证框架**
     - 多方法集成验证
     - 综合评分机制
-    - 误报率分析
 
 ---
 ## 效果验证

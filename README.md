@@ -20,7 +20,7 @@ Seeker/
 ```
 
 ## Read Slide
-[Click Here](./slides/proposal.pptx)
+[Click Here](./slides/assets/proposal.pptx)
 
 ## 异常定义
 
