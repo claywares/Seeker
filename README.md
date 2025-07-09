@@ -1,24 +1,5 @@
 # Seeker - 时间序列异常检测机器学习项目
 
-## 目录结构
-```
-Seeker/
-├── notebooks/              # Jupyter notebooks
-│   ├── seeker_v2_demo.ipynb     # 重构后系统演示
-│   └── untitled-1.ipynb         # Random Forest开发记录
-├── src/                    # 核心代码模块
-│   ├── detectors/               # 检测器模块
-│   ├── scorers/                 # 评分器模块  
-│   ├── validators/              # 验证器模块
-│   └── utils/                   # 工具函数
-├── experiments/            # 实验对比
-│   ├── baseline_methods/        # 基线方法实现
-│   └── validation/              # 验证脚本
-├── configs/                # 配置文件
-├── data/                   # 数据文件
-└── results/                # 结果输出
-```
-
 ## Read Slide
 [Click Here](./slides/assets/proposal.pptx)
 
