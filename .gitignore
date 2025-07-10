@@ -2,3 +2,5 @@ venv
 .idea
 __pycache__
 demo_log.txt
+next.md
+test.py
