@@ -2,8 +2,9 @@ import boto3
 import pandas as pd
 from datetime import datetime, timedelta
 import os
-from typing import Dict, List, Optional, Union
+from typing import Optional
 from dataclasses import dataclass
+
 
 @dataclass
 class MetricConfig:
@@ -12,8 +13,8 @@ class MetricConfig:
     metric_name: str
     statistic: str
     period: int
-    dimension_name: str
-    dimension_value: str
+    dimensions: list
+
 
 class CloudWatchDataFetcher:
     """AWS CloudWatch数据获取类"""
@@ -41,38 +42,44 @@ class CloudWatchDataFetcher:
             end_time = datetime.utcnow()
         if start_time is None:
             start_time = end_time - timedelta(days=time_range_days)
-
         # 构建查询
-        response = self.cloudwatch.get_metric_data(
-            MetricDataQueries=[
-                {
-                    'Id': 'metric_data',
-                    'MetricStat': {
-                        'Metric': {
-                            'Namespace': metric_config.namespace,
-                            'MetricName': metric_config.metric_name,
-                            'Dimensions': [
-                                {
-                                    'Name': metric_config.dimension_name,
-                                    'Value': metric_config.dimension_value
-                                }
-                            ]
-                        },
-                        'Period': metric_config.period,
-                        'Stat': metric_config.statistic
-                    }
+        metric_query = [
+            {
+                'Id': 'metric_data',
+                'MetricStat': {
+                    'Metric': {
+                        'Namespace': metric_config.namespace,
+                        'MetricName': metric_config.metric_name,
+                        'Dimensions': metric_config.dimensions or []
+                    },
+                    'Period': metric_config.period,
+                    'Stat': metric_config.statistic
                 }
-            ],
-            StartTime=start_time,
-            EndTime=end_time
-        )
+            }
+        ]
+        all_data = []
+        next_token = None
+        while True:
+            params = {
+                "MetricDataQueries": metric_query,
+                "StartTime": start_time,
+                "EndTime": end_time,
+            }
+            if next_token:
+                params["NextToken"] = next_token
 
+            resp = self.cloudwatch.get_metric_data(**params)
+            for result in resp["MetricDataResults"]:
+                all_data.extend(
+                    zip(result["Timestamps"], result["Values"])
+                )
+
+            next_token = resp.get("NextToken")
+            if not next_token:
+                break
         # 转换为DataFrame
-        df = pd.DataFrame({
-            'timestamp': response['MetricDataResults'][0]['Timestamps'],
-            'value': response['MetricDataResults'][0]['Values']
-        }).sort_values('timestamp')
-        
+        df = pd.DataFrame(all_data, columns=["timestamp", "cpu_usage"]).sort_values('timestamp')
+
         return df
     
     def save_data(self, df: pd.DataFrame, metric_config: MetricConfig) -> str:
@@ -83,8 +90,8 @@ class CloudWatchDataFetcher:
             metric_config: 指标配置对象
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{metric_config.metric_name}_{metric_config.dimension_value}_{timestamp}.csv"
-        
+        filename = f"{metric_config.metric_name}_{timestamp}.csv"
+
         data_dir = os.path.dirname(os.path.abspath(__file__))
         filepath = os.path.join(data_dir, filename)
         
@@ -96,23 +103,34 @@ def main():
     """主函数：获取并保存AWS CloudWatch指标数据"""
     # EC2 CPU使用率配置
     cpu_config = MetricConfig(
-        namespace='AWS/EC2',
+        namespace='AWS/ECS',
         metric_name='CPUUtilization',
         statistic='Average',
-        period=60,  # 1分钟间隔
-        dimension_name='InstanceId',
-        dimension_value='i-00f458499ca38a3c7'
+        period=300,
+        dimensions=[
+            {
+                'Name': "ClusterName",
+                'Value': "ecs-cluster-fraggles"
+            },
+            {
+                'Name': "ServiceName",
+                'Value': "realm-EcsService-8BpiGDiz4loH"
+            }
+        ]
     )
-    
+
     # 创建fetcher实例
     fetcher = CloudWatchDataFetcher()
-    
+    # HINT: 
+    # Data points with a period of less than 60 seconds are available for 3 hours. 
+    # Data points with a period of 60 seconds (1-minute) are available for 15 days.
+    # Data points with a period of 300 seconds (5-minute) are available for 63 days.
+    # Data points with a period of 3600 seconds (1 hour) are available for 455 days (15 months).
     try:
-        # 获取过去7天的数据
         print(f"正在获取 {cpu_config.metric_name} 数据...")
         df = fetcher.fetch_metric_data(
             metric_config=cpu_config,
-            time_range_days=7
+            time_range_days=60
         )
         
         # 保存数据
