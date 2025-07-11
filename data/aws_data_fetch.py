@@ -102,6 +102,9 @@ class CloudWatchDataFetcher:
 def main():
     """主函数：获取并保存AWS CloudWatch指标数据"""
     # EC2 CPU使用率配置
+    # 'i-00f458499ca38a3c7'
+    # 'i-0b012bea03c634e07'
+
     cpu_config = MetricConfig(
         namespace='AWS/ECS',
         metric_name='CPUUtilization',
