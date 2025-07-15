@@ -4,4 +4,4 @@ __pycache__
 demo_log.txt
 next.md
 test.py
-cpu_random_forest_model.joblib
+*.joblib
